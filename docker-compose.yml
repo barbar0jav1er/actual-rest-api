@@ -1,0 +1,53 @@
+services:
+  actual-server:
+    image: actualbudget/actual-server:latest
+    ports:
+      - "5006:5006"
+    environment:
+      - ACTUAL_OPENID_DISCOVERY_URL=http://localhost:8080/realms/actual/.well-known/openid-configuration
+      - ACTUAL_OPENID_CLIENT_ID=actual-client
+      - ACTUAL_OPENID_CLIENT_SECRET=actual-secret
+      - ACTUAL_OPENID_SERVER_HOSTNAME=http://localhost:5006
+      - ACTUAL_LOGIN_METHOD=openid
+      - ACTUAL_TRUST_PROXY=true
+    volumes:
+      - ./docker/actual/data:/data
+    networks:
+      - actual-net
+    # TRUCO: Mapeamos localhost a la IP de keycloak dentro de la red docker
+    extra_hosts:
+      - "localhost:host-gateway"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev --import-realm --health-enabled=true
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_PORT=8080
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HTTP_ENABLED=true
+    volumes:
+      - ./docker/keycloak/data:/opt/keycloak/data
+      - ./docker/keycloak/realm.json:/opt/keycloak/data/import/realm.json
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e \"GET /health/live HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3 && cat <&3 | grep -q \"200 OK\""]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    networks:
+      - actual-net
+    restart: unless-stopped
+
+networks:
+  actual-net:
+    driver: bridge
