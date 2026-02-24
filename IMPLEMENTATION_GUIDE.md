@@ -53,6 +53,7 @@ npm init -y
 ```
 
 **Cambios en `package.json`:**
+
 ```json
 {
   "name": "actual-rest-api",
@@ -88,6 +89,7 @@ npm install
 #### 1.4 Configurar TypeScript
 
 **Crear `tsconfig.json`:**
+
 ```json
 {
   "compilerOptions": {
@@ -121,6 +123,7 @@ npm install
 #### 1.5 Crear archivo .env
 
 **`.env`:**
+
 ```env
 # Servidor
 PORT=3001
@@ -155,75 +158,77 @@ actual-data/
 #### 2.1 Crear tipos TypeScript
 
 **`src/types/index.ts`:**
+
 ```typescript
 // User
 export interface User {
-  id: string
-  name: string
-  email: string
-  loginMethod: 'openid' | 'password'
-  permission: 'ADMIN' | 'BASIC'
+  id: string;
+  name: string;
+  email: string;
+  loginMethod: "openid" | "password";
+  permission: "ADMIN" | "BASIC";
 }
 
 // Budget
 export interface Budget {
-  id: string
-  name: string
-  needsPassword: boolean
-  owner: string
+  id: string;
+  name: string;
+  needsPassword: boolean;
+  owner: string;
 }
 
 // Account
 export interface Account {
-  id: string
-  name: string
-  type: 'checking' | 'savings' | 'credit' | 'investment' | 'loan'
-  offBudget: boolean
-  archived: boolean
-  balance: number
+  id: string;
+  name: string;
+  type: "checking" | "savings" | "credit" | "investment" | "loan";
+  offBudget: boolean;
+  archived: boolean;
+  balance: number;
 }
 
 // Transaction
 export interface Transaction {
-  id: string
-  date: string
-  payee: string | null
-  category: string | null
-  amount: number
-  notes: string | null
-  cleared: boolean
+  id: string;
+  date: string;
+  payee: string | null;
+  category: string | null;
+  amount: number;
+  notes: string | null;
+  cleared: boolean;
 }
 
 // Loaded Budget (cache interno)
 export interface LoadedBudgetCache {
-  syncId: string
-  userId: string
-  loadedAt: number
+  syncId: string;
+  userId: string;
+  loadedAt: number;
 }
 
 // API Responses
 export interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-  message?: string
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
 }
 ```
 
 #### 2.2 Crear configuración
 
 **`src/config.ts`:**
+
 ```typescript
 export const config = {
-  port: parseInt(process.env.PORT || '3001'),
-  host: process.env.HOST || '0.0.0.0',
-  nodeEnv: process.env.NODE_ENV || 'development',
-  syncServerUrl: process.env.SYNC_SERVER_URL || 'http://localhost:5006',
-  dataDir: process.env.DATA_DIR || './actual-data',
-  logLevel: process.env.LOG_LEVEL || 'info',
-  isDev: process.env.NODE_ENV === 'development',
-  isProd: process.env.NODE_ENV === 'production'
-}
+  port: parseInt(process.env.PORT || "3001"),
+  host: process.env.HOST || "0.0.0.0",
+  nodeEnv: process.env.NODE_ENV || "development",
+  syncServerUrl: process.env.SYNC_SERVER_URL || "http://localhost:5006",
+  dataDir: process.env.DATA_DIR || "./actual-data",
+  logLevel: process.env.LOG_LEVEL || "info",
+  isDev: process.env.NODE_ENV === "development",
+  isProd: process.env.NODE_ENV === "production",
+};
 ```
 
 ---
@@ -233,40 +238,41 @@ export const config = {
 #### 3.1 Servicio de Autenticación
 
 **`src/services/auth.ts`:**
-```typescript
-import type { User } from '../types/index'
 
-const SYNC_SERVER_URL = process.env.SYNC_SERVER_URL || 'http://localhost:5006'
+```typescript
+import type { User } from "../types/index";
+
+const SYNC_SERVER_URL = process.env.SYNC_SERVER_URL || "http://localhost:5006";
 
 export async function validateToken(token: string): Promise<User | null> {
-  if (!token) return null
+  if (!token) return null;
 
   try {
     const response = await fetch(`${SYNC_SERVER_URL}/account/validate`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'x-actual-token': token,
-        'Content-Type': 'application/json'
-      }
-    })
+        "x-actual-token": token,
+        "Content-Type": "application/json",
+      },
+    });
 
-    if (!response.ok) return null
+    if (!response.ok) return null;
 
-    const data = await response.json()
+    const data = await response.json();
 
-    if (!data.data) return null
+    if (!data.data) return null;
 
     // Mapear response a User
     return {
       id: data.data.userId,
       name: data.data.displayName || data.data.userName,
       email: data.data.userName,
-      loginMethod: data.data.loginMethod || 'openid',
-      permission: data.data.permission || 'BASIC'
-    }
+      loginMethod: data.data.loginMethod || "openid",
+      permission: data.data.permission || "BASIC",
+    };
   } catch (err) {
-    console.error('Token validation failed:', err)
-    return null
+    console.error("Token validation failed:", err);
+    return null;
   }
 }
 ```
@@ -274,6 +280,7 @@ export async function validateToken(token: string): Promise<User | null> {
 #### 3.2 Servicio de Actual API
 
 **`src/services/actual.ts`:**
+
 ```typescript
 import {
   init,
@@ -283,108 +290,104 @@ import {
   addTransactions,
   sync,
   loadBudget,
-  shutdown
-} from '@actual-app/api'
-import type { LoadedBudgetCache } from '../types/index'
+  shutdown,
+} from "@actual-app/api";
+import type { LoadedBudgetCache } from "../types/index";
 
-let actualInitialized = false
-let loadedBudget: LoadedBudgetCache | null = null
+let actualInitialized = false;
+let loadedBudget: LoadedBudgetCache | null = null;
 
 export async function initActualAPI(token: string): Promise<void> {
-  if (actualInitialized) return
+  if (actualInitialized) return;
 
   try {
     await init({
-      dataDir: process.env.DATA_DIR || './actual-data',
-      serverURL: process.env.SYNC_SERVER_URL || 'http://localhost:5006',
+      dataDir: process.env.DATA_DIR || "./actual-data",
+      serverURL: process.env.SYNC_SERVER_URL || "http://localhost:5006",
       password: token,
-      verbose: process.env.LOG_LEVEL === 'debug'
-    })
-    actualInitialized = true
-    console.log('✅ Actual API initialized')
+      verbose: process.env.LOG_LEVEL === "debug",
+    });
+    actualInitialized = true;
+    console.log("✅ Actual API initialized");
   } catch (err) {
-    console.error('❌ Failed to init Actual API:', err)
-    throw err
+    console.error("❌ Failed to init Actual API:", err);
+    throw err;
   }
 }
 
-export async function loadUserBudget(
-  token: string,
-  userId: string,
-  syncId: string
-): Promise<void> {
+export async function loadUserBudget(token: string, userId: string, syncId: string): Promise<void> {
   // Verificar si ya está cargado
   if (loadedBudget?.syncId === syncId && loadedBudget?.userId === userId) {
-    console.log(`✅ Budget ${syncId} already loaded`)
-    return
+    console.log(`✅ Budget ${syncId} already loaded`);
+    return;
   }
 
   try {
-    await initActualAPI(token)
+    await initActualAPI(token);
 
-    console.log(`📥 Loading budget: ${syncId}`)
-    await downloadBudget(syncId)
-    await loadBudget(syncId)
+    console.log(`📥 Loading budget: ${syncId}`);
+    await downloadBudget(syncId);
+    await loadBudget(syncId);
 
     loadedBudget = {
       syncId,
       userId,
-      loadedAt: Date.now()
-    }
+      loadedAt: Date.now(),
+    };
 
-    console.log(`✅ Budget loaded: ${syncId}`)
+    console.log(`✅ Budget loaded: ${syncId}`);
   } catch (err) {
-    console.error(`❌ Failed to load budget ${syncId}:`, err)
-    throw err
+    console.error(`❌ Failed to load budget ${syncId}:`, err);
+    throw err;
   }
 }
 
 export async function getAllBudgets() {
-  return await getBudgets()
+  return await getBudgets();
 }
 
 export async function getAllAccounts() {
-  return await getAccounts()
+  return await getAccounts();
 }
 
 export async function createTransaction(
   accountId: string,
   data: {
-    amount: number
-    payee?: string
-    category?: string | null
-    date?: string
-    notes?: string
-  }
+    amount: number;
+    payee?: string;
+    category?: string | null;
+    date?: string;
+    notes?: string;
+  },
 ) {
   const transaction = {
     amount: data.amount,
-    payee: data.payee || 'Mobile App',
+    payee: data.payee || "Mobile App",
     category: data.category || null,
     date: data.date ? new Date(data.date) : new Date(),
-    notes: data.notes || '',
-    cleared: false
-  }
+    notes: data.notes || "",
+    cleared: false,
+  };
 
-  await addTransactions(accountId, [transaction])
-  await sync()
+  await addTransactions(accountId, [transaction]);
+  await sync();
 }
 
 export async function shutdownAPI(): Promise<void> {
   if (actualInitialized) {
     try {
-      await shutdown()
-      actualInitialized = false
-      loadedBudget = null
-      console.log('✅ Actual API shutdown')
+      await shutdown();
+      actualInitialized = false;
+      loadedBudget = null;
+      console.log("✅ Actual API shutdown");
     } catch (err) {
-      console.error('Error shutting down API:', err)
+      console.error("Error shutting down API:", err);
     }
   }
 }
 
 export function getLoadedBudgetCache() {
-  return loadedBudget
+  return loadedBudget;
 }
 ```
 
@@ -395,67 +398,69 @@ export function getLoadedBudgetCache() {
 #### 4.1 Middleware de Autenticación
 
 **`src/middleware/auth.ts`:**
+
 ```typescript
-import { Context, Next } from 'hono'
-import { validateToken } from '../services/auth'
+import { Context, Next } from "hono";
+import { validateToken } from "../services/auth";
 
 export async function authMiddleware(c: Context, next: Next) {
   // Rutas públicas
-  if (c.req.path === '/health') {
-    await next()
-    return
+  if (c.req.path === "/health") {
+    await next();
+    return;
   }
 
-  const token = c.req.header('x-actual-token')
+  const token = c.req.header("x-actual-token");
 
   if (!token) {
-    return c.json({ error: 'missing-token', success: false }, 401)
+    return c.json({ error: "missing-token", success: false }, 401);
   }
 
-  const user = await validateToken(token)
+  const user = await validateToken(token);
   if (!user) {
-    return c.json({ error: 'invalid-token', success: false }, 401)
+    return c.json({ error: "invalid-token", success: false }, 401);
   }
 
   // Guardar en contexto
-  c.set('user', user)
-  c.set('token', token)
+  c.set("user", user);
+  c.set("token", token);
 
-  await next()
+  await next();
 }
 
 export function getUser(c: Context) {
-  return c.get('user')
+  return c.get("user");
 }
 
 export function getToken(c: Context) {
-  return c.get('token')
+  return c.get("token");
 }
 ```
 
 #### 4.2 Middleware de Errores
 
 **`src/middleware/error.ts`:**
+
 ```typescript
-import { Context, Next } from 'hono'
+import { Context, Next } from "hono";
 
 export async function errorHandler(c: Context, next: Next) {
   try {
-    await next()
+    await next();
   } catch (err: any) {
-    console.error('Error:', err)
+    console.error("Error:", err);
 
-    const status = err.status || 500
-    const message = err.message || 'Internal Server Error'
+    const status = err.status || 500;
+    const message = err.message || "Internal Server Error";
 
     return c.json(
       {
         success: false,
         error: message,
-        ...(process.env.NODE_ENV === 'development' && { details: err.stack })
+        ...(process.env.NODE_ENV === "development" && { details: err.stack }),
       },
-      status
-    )
+      status,
+    );
   }
 }
 ```
@@ -467,15 +472,16 @@ export async function errorHandler(c: Context, next: Next) {
 #### 5.1 Rutas de Usuario
 
 **`src/routes/user.ts`:**
+
 ```typescript
-import { Hono } from 'hono'
-import { getUser } from '../middleware/auth'
-import type { User } from '../types/index'
+import { Hono } from "hono";
+import { getUser } from "../middleware/auth";
+import type { User } from "../types/index";
 
-const app = new Hono()
+const app = new Hono();
 
-app.get('/user', (c) => {
-  const user = getUser(c) as User
+app.get("/user", (c) => {
+  const user = getUser(c) as User;
 
   return c.json({
     success: true,
@@ -484,32 +490,33 @@ app.get('/user', (c) => {
       name: user.name,
       email: user.email,
       loginMethod: user.loginMethod,
-      permission: user.permission
-    }
-  })
-})
+      permission: user.permission,
+    },
+  });
+});
 
-export default app
+export default app;
 ```
 
 #### 5.2 Rutas de Presupuestos
 
 **`src/routes/budgets.ts`:**
+
 ```typescript
-import { Hono } from 'hono'
-import { getUser, getToken } from '../middleware/auth'
-import { initActualAPI, getAllBudgets, loadUserBudget } from '../services/actual'
-import type { User } from '../types/index'
+import { Hono } from "hono";
+import { getUser, getToken } from "../middleware/auth";
+import { initActualAPI, getAllBudgets, loadUserBudget } from "../services/actual";
+import type { User } from "../types/index";
 
-const app = new Hono()
+const app = new Hono();
 
-app.get('/budgets', async (c) => {
+app.get("/budgets", async (c) => {
   try {
-    const user = getUser(c) as User
-    const token = getToken(c) as string
+    const user = getUser(c) as User;
+    const token = getToken(c) as string;
 
-    await initActualAPI(token)
-    const budgets = await getAllBudgets()
+    await initActualAPI(token);
+    const budgets = await getAllBudgets();
 
     return c.json({
       success: true,
@@ -518,68 +525,66 @@ app.get('/budgets', async (c) => {
         id: b.id,
         name: b.name,
         needsPassword: b.hasPassword,
-        owner: b.owner
-      }))
-    })
+        owner: b.owner,
+      })),
+    });
   } catch (err: any) {
-    console.error('Error getting budgets:', err)
-    return c.json({ success: false, error: 'failed-to-get-budgets' }, 500)
+    console.error("Error getting budgets:", err);
+    return c.json({ success: false, error: "failed-to-get-budgets" }, 500);
   }
-})
+});
 
-app.post('/load-budget', async (c) => {
+app.post("/load-budget", async (c) => {
   try {
-    const user = getUser(c) as User
-    const token = getToken(c) as string
-    const { syncId } = await c.req.json()
+    const user = getUser(c) as User;
+    const token = getToken(c) as string;
+    const { syncId } = await c.req.json();
 
     if (!syncId) {
-      return c.json({ success: false, error: 'missing-syncId' }, 400)
+      return c.json({ success: false, error: "missing-syncId" }, 400);
     }
 
-    await loadUserBudget(token, user.id, syncId)
+    await loadUserBudget(token, user.id, syncId);
 
     return c.json({
       success: true,
-      message: 'Budget loaded',
+      message: "Budget loaded",
       budgetId: syncId,
-      userId: user.id
-    })
+      userId: user.id,
+    });
   } catch (err: any) {
-    console.error('Error loading budget:', err)
-    return c.json({ success: false, error: 'failed-to-load-budget' }, 500)
+    console.error("Error loading budget:", err);
+    return c.json({ success: false, error: "failed-to-load-budget" }, 500);
   }
-})
+});
 
-export default app
+export default app;
 ```
 
 #### 5.3 Rutas de Cuentas
 
 **`src/routes/accounts.ts`:**
+
 ```typescript
-import { Hono } from 'hono'
-import { getUser, getToken } from '../middleware/auth'
-import { initActualAPI, getAllAccounts, loadUserBudget } from '../services/actual'
-import type { User } from '../types/index'
+import { Hono } from "hono";
+import { getUser, getToken } from "../middleware/auth";
+import { initActualAPI, getAllAccounts, loadUserBudget } from "../services/actual";
+import type { User } from "../types/index";
 
-const app = new Hono()
+const app = new Hono();
 
-app.get('/accounts', async (c) => {
+app.get("/accounts", async (c) => {
   try {
-    const user = getUser(c) as User
-    const token = getToken(c) as string
-    const syncId = c.req.query('syncId')
+    const user = getUser(c) as User;
+    const token = getToken(c) as string;
+    const syncId = c.req.query("syncId");
 
     if (!syncId) {
-      return c.json(
-        { success: false, error: 'missing-syncId-query-param' },
-        400
-      )
+      return c.json({ success: false, error: "missing-syncId-query-param" }, 400);
     }
 
-    await loadUserBudget(token, user.id, syncId)
-    const accounts = await getAllAccounts()
+    await loadUserBudget(token, user.id, syncId);
+    const accounts = await getAllAccounts();
 
     return c.json({
       success: true,
@@ -590,58 +595,51 @@ app.get('/accounts', async (c) => {
         type: a.type,
         offBudget: a.offBudget,
         archived: a.archived,
-        balance: a.balance
-      }))
-    })
+        balance: a.balance,
+      })),
+    });
   } catch (err: any) {
-    console.error('Error getting accounts:', err)
-    return c.json({ success: false, error: 'failed-to-get-accounts' }, 500)
+    console.error("Error getting accounts:", err);
+    return c.json({ success: false, error: "failed-to-get-accounts" }, 500);
   }
-})
+});
 
-export default app
+export default app;
 ```
 
 #### 5.4 Rutas de Transacciones
 
 **`src/routes/transactions.ts`:**
+
 ```typescript
-import { Hono } from 'hono'
-import { getUser, getToken } from '../middleware/auth'
-import { loadUserBudget, createTransaction } from '../services/actual'
-import type { User } from '../types/index'
+import { Hono } from "hono";
+import { getUser, getToken } from "../middleware/auth";
+import { loadUserBudget, createTransaction } from "../services/actual";
+import type { User } from "../types/index";
 
-const app = new Hono()
+const app = new Hono();
 
-app.post('/transactions', async (c) => {
+app.post("/transactions", async (c) => {
   try {
-    const user = getUser(c) as User
-    const token = getToken(c) as string
+    const user = getUser(c) as User;
+    const token = getToken(c) as string;
 
-    const {
-      syncId,
-      accountId,
-      amount,
-      payee,
-      category,
-      date,
-      notes
-    } = await c.req.json()
+    const { syncId, accountId, amount, payee, category, date, notes } = await c.req.json();
 
     // Validaciones
     if (!syncId || !accountId || amount === undefined) {
       return c.json(
         {
           success: false,
-          error: 'missing-required-fields',
-          required: ['syncId', 'accountId', 'amount']
+          error: "missing-required-fields",
+          required: ["syncId", "accountId", "amount"],
         },
-        400
-      )
+        400,
+      );
     }
 
     // Cargar presupuesto
-    await loadUserBudget(token, user.id, syncId)
+    await loadUserBudget(token, user.id, syncId);
 
     // Crear transacción
     await createTransaction(accountId, {
@@ -649,24 +647,24 @@ app.post('/transactions', async (c) => {
       payee,
       category,
       date,
-      notes
-    })
+      notes,
+    });
 
     return c.json({
       success: true,
-      message: 'Transaction recorded',
+      message: "Transaction recorded",
       budgetId: syncId,
       accountId,
       userId: user.id,
-      timestamp: new Date().toISOString()
-    })
+      timestamp: new Date().toISOString(),
+    });
   } catch (err: any) {
-    console.error('Error adding transaction:', err)
-    return c.json({ success: false, error: 'failed-to-add-transaction' }, 500)
+    console.error("Error adding transaction:", err);
+    return c.json({ success: false, error: "failed-to-add-transaction" }, 500);
   }
-})
+});
 
-export default app
+export default app;
 ```
 
 ---
@@ -676,49 +674,50 @@ export default app
 #### 6.1 Crear index.ts
 
 **`src/index.ts`:**
-```typescript
-import { Hono } from 'hono'
-import { config } from './config'
-import { authMiddleware, errorHandler } from './middleware/auth'
-import userRoutes from './routes/user'
-import budgetRoutes from './routes/budgets'
-import accountRoutes from './routes/accounts'
-import transactionRoutes from './routes/transactions'
-import { shutdownAPI } from './services/actual'
 
-const app = new Hono()
+```typescript
+import { Hono } from "hono";
+import { config } from "./config";
+import { authMiddleware, errorHandler } from "./middleware/auth";
+import userRoutes from "./routes/user";
+import budgetRoutes from "./routes/budgets";
+import accountRoutes from "./routes/accounts";
+import transactionRoutes from "./routes/transactions";
+import { shutdownAPI } from "./services/actual";
+
+const app = new Hono();
 
 // Middleware global
-app.use(errorHandler)
+app.use(errorHandler);
 
 // Health check (sin autenticación)
-app.get('/health', (c) => {
+app.get("/health", (c) => {
   return c.json({
-    status: 'ok',
-    timestamp: new Date().toISOString()
-  })
-})
+    status: "ok",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Aplicar middleware de autenticación a partir de aquí
-app.use('*', authMiddleware)
+app.use("*", authMiddleware);
 
 // Rutas
-app.route('/api', userRoutes)
-app.route('/api', budgetRoutes)
-app.route('/api', accountRoutes)
-app.route('/api', transactionRoutes)
+app.route("/api", userRoutes);
+app.route("/api", budgetRoutes);
+app.route("/api", accountRoutes);
+app.route("/api", transactionRoutes);
 
 // Manejo de ruta no encontrada
 app.notFound((c) => {
-  return c.json({ success: false, error: 'not-found' }, 404)
-})
+  return c.json({ success: false, error: "not-found" }, 404);
+});
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down...')
-  await shutdownAPI()
-  process.exit(0)
-})
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received, shutting down...");
+  await shutdownAPI();
+  process.exit(0);
+});
 
 // Iniciar servidor
 console.log(`
@@ -729,9 +728,9 @@ console.log(`
 📍 Sync Server: ${config.syncServerUrl}
 🔌 API Server:  http://${config.host}:${config.port}
 🌍 Environment: ${config.nodeEnv}
-`)
+`);
 
-export default app
+export default app;
 ```
 
 ---
@@ -756,12 +755,14 @@ npm run dev
 #### 7.2 Probar endpoints
 
 **Health check:**
+
 ```bash
 curl http://localhost:3001/health
 # {"status":"ok","timestamp":"..."}
 ```
 
 **Con token válido (necesitas obtener un token OpenID):**
+
 ```bash
 # Variables
 TOKEN="tu-token-openid-aqui"
@@ -806,6 +807,7 @@ curl -X POST http://localhost:3001/api/transactions \
 #### 8.1 Crear Dockerfile
 
 **`Dockerfile`:**
+
 ```dockerfile
 FROM node:20-alpine
 
@@ -831,6 +833,7 @@ CMD ["node", "dist/index.js"]
 #### 8.2 Crear .dockerignore
 
 **`.dockerignore`:**
+
 ```
 node_modules
 npm-debug.log
@@ -900,21 +903,25 @@ curl http://localhost:3001/health
 ## 🐛 Troubleshooting Común
 
 ### Error: "Cannot find module @actual-app/api"
+
 ```bash
 npm install @actual-app/api
 ```
 
 ### Error: "Token validation failed"
+
 - Verificar que SYNC_SERVER_URL es correcto
 - Verificar que sync-server está corriendo
 - Verificar que token es válido
 
 ### Error: "Failed to load budget"
+
 - Verificar que syncId es correcto
 - Verificar que usuario tiene acceso al presupuesto
 - Revisar logs de @actual-app/api
 
 ### Puerto 3001 en uso
+
 ```bash
 # Cambiar puerto
 PORT=3002 npm run dev

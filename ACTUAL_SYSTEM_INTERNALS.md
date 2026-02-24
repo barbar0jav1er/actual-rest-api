@@ -84,6 +84,7 @@ actual/
 **Propósito:** Contiene toda la lógica de negocio de Actual. Es agnóstico al frontend/backend.
 
 **Responsabilidades:**
+
 - Manejo de presupuestos
 - Cálculos de transacciones
 - Reglas y filtros
@@ -92,6 +93,7 @@ actual/
 - Reportes y análisis
 
 **Estructura:**
+
 ```
 loot-core/src/server/
 ├── main.ts              ← Entry point, instala handlers
@@ -109,6 +111,7 @@ loot-core/src/server/
 ```
 
 **Key Exports:**
+
 - `handlers` - Objeto con todos los "command handlers"
 - `lib` - API pública usada por @actual-app/api
 - Métodos de sincronización, encryption, etc.
@@ -120,12 +123,14 @@ loot-core/src/server/
 **Propósito:** Librería NPM que expone métodos para usar Actual programáticamente
 
 **Responsabilidades:**
+
 - Wrapper sobre loot-core handlers
 - Descarga/Carga de presupuestos
 - Validación de tipos
 - Export de métodos públicos
 
 **Estructura:**
+
 ```
 api/
 ├── index.ts           ← init() y shutdown()
@@ -138,14 +143,15 @@ api/
 ```
 
 **Exporta:**
+
 ```typescript
 // Métodos principales
-export { init, shutdown }
-export { getBudgets, loadBudget, downloadBudget }
-export { addTransactions, updateTransaction, deleteTransaction }
-export { getAccounts, createAccount, updateAccount }
-export { getCategories, createCategory, updateCategory }
-export { getPayees, createPayee, updatePayee }
+export { init, shutdown };
+export { getBudgets, loadBudget, downloadBudget };
+export { addTransactions, updateTransaction, deleteTransaction };
+export { getAccounts, createAccount, updateAccount };
+export { getCategories, createCategory, updateCategory };
+export { getPayees, createPayee, updatePayee };
 // ... más de 100 métodos
 ```
 
@@ -154,11 +160,13 @@ export { getPayees, createPayee, updatePayee }
 **Ubicación:** `packages/sync-server/`
 
 **Propósito:** Servidor HTTP que maneja:
+
 - Autenticación (OpenID, Password, Header)
 - Sincronización de archivos
 - Almacenamiento en la nube
 
 **Responsabilidades:**
+
 - Login/autenticación
 - Descarga de presupuestos
 - Sincronización de cambios
@@ -166,6 +174,7 @@ export { getPayees, createPayee, updatePayee }
 - Gestión de usuarios (multiuser)
 
 **Estructura:**
+
 ```
 sync-server/src/
 ├── app.ts                ← Express app principal
@@ -187,6 +196,7 @@ sync-server/src/
 ```
 
 **Endpoints Principales:**
+
 - `POST /account/login` - Login
 - `GET /account/validate` - Validar token
 - `POST /sync` - Sincronización
@@ -199,11 +209,13 @@ sync-server/src/
 **Propósito:** Implementa Conflict-free Replicated Data Type para sincronización automática
 
 **Responsabilidades:**
+
 - Sincronización sin conflictos
 - Vector clocks para ordenamiento
 - Merge de datos de múltiples clientes
 
 **Concepto:**
+
 ```
 Cliente 1    Cliente 2    Cliente 3
    ↓            ↓            ↓
@@ -336,6 +348,7 @@ handlers['api/add-transactions'] = async function({
 ```
 
 **Pattern común:**
+
 ```
 API Method → send() → loot-core Handler → DB Operation → Return Result
 ```
@@ -343,28 +356,31 @@ API Method → send() → loot-core Handler → DB Operation → Return Result
 ### Categorías de Métodos
 
 #### A. **Presupuesto (Budget)**
+
 ```typescript
-getBudgets()                           // Listar todos
-loadBudget(id)                         // Cargar en memoria
-downloadBudget(syncId)                 // Descargar del servidor
-getBudgetMonths()                      // Meses con datos
-getBudgetMonth(month)                  // Datos de mes específico
-setBudgetAmount(month, categoryId, amount)
-setBudgetCarryover(month, categoryId, amount)
-holdBudgetForNextMonth(month, amount)
-resetBudgetHold(month)
+getBudgets(); // Listar todos
+loadBudget(id); // Cargar en memoria
+downloadBudget(syncId); // Descargar del servidor
+getBudgetMonths(); // Meses con datos
+getBudgetMonth(month); // Datos de mes específico
+setBudgetAmount(month, categoryId, amount);
+setBudgetCarryover(month, categoryId, amount);
+holdBudgetForNextMonth(month, amount);
+resetBudgetHold(month);
 ```
 
 #### B. **Transacciones**
+
 ```typescript
-addTransactions(accountId, transactions)      // Crear múltiples
-importTransactions(accountId, transactions)   // Importar (sin deduplicar)
-getTransactions(query)                        // Obtener con filtros
-updateTransaction(id, fields)                 // Modificar
-deleteTransaction(id)                         // Eliminar
+addTransactions(accountId, transactions); // Crear múltiples
+importTransactions(accountId, transactions); // Importar (sin deduplicar)
+getTransactions(query); // Obtener con filtros
+updateTransaction(id, fields); // Modificar
+deleteTransaction(id); // Eliminar
 ```
 
 #### C. **Cuentas (Accounts)**
+
 ```typescript
 getAccounts()                          // Listar todas
 createAccount(account)                 // Crear
@@ -377,72 +393,80 @@ runBankSync(accountId)                 // Sincronizar banco
 ```
 
 #### D. **Categorías**
+
 ```typescript
-getCategories()                        // Listar todas
-createCategory(category)               // Crear
-updateCategory(id, fields)             // Modificar
-deleteCategory(id, transferCategoryId) // Eliminar (transferir)
-getCategoryGroups()                    // Listar grupos
-createCategoryGroup(group)             // Crear grupo
+getCategories(); // Listar todas
+createCategory(category); // Crear
+updateCategory(id, fields); // Modificar
+deleteCategory(id, transferCategoryId); // Eliminar (transferir)
+getCategoryGroups(); // Listar grupos
+createCategoryGroup(group); // Crear grupo
 ```
 
 #### E. **Beneficiarios (Payees)**
+
 ```typescript
-getPayees()                            // Listar todos
-createPayee(payee)                     // Crear
-updatePayee(id, fields)                // Modificar
-deletePayee(id)                        // Eliminar
-getCommonPayees()                      // Top beneficiarios
-mergePayees(targetId, mergeIds)        // Fusionar
+getPayees(); // Listar todos
+createPayee(payee); // Crear
+updatePayee(id, fields); // Modificar
+deletePayee(id); // Eliminar
+getCommonPayees(); // Top beneficiarios
+mergePayees(targetId, mergeIds); // Fusionar
 ```
 
 #### F. **Tags**
+
 ```typescript
-getTags()                              // Listar todos
-createTag(tag)                         // Crear
-updateTag(id, fields)                  // Modificar
-deleteTag(id)                          // Eliminar
+getTags(); // Listar todos
+createTag(tag); // Crear
+updateTag(id, fields); // Modificar
+deleteTag(id); // Eliminar
 ```
 
 #### G. **Reglas**
+
 ```typescript
-getRules()                             // Listar reglas
-createRule(rule)                       // Crear
-updateRule(rule)                       // Modificar
-deleteRule(id)                         // Eliminar
-getPayeeRules(payeeId)                 // Reglas de beneficiario
+getRules(); // Listar reglas
+createRule(rule); // Crear
+updateRule(rule); // Modificar
+deleteRule(id); // Eliminar
+getPayeeRules(payeeId); // Reglas de beneficiario
 ```
 
 #### H. **Programas (Schedules)**
+
 ```typescript
-getSchedules()                         // Listar
-createSchedule(schedule)               // Crear
-updateSchedule(id, fields, resetNextDate)
-deleteSchedule(id)                     // Eliminar
+getSchedules(); // Listar
+createSchedule(schedule); // Crear
+updateSchedule(id, fields, resetNextDate);
+deleteSchedule(id); // Eliminar
 ```
 
 #### I. **Queries (AQL)**
+
 ```typescript
-aqlQuery(query)                        // Ejecutar query Actual Query Language
-q                                      // Query builder
-runQuery(query)                        // Deprecated: usar aqlQuery
+aqlQuery(query); // Ejecutar query Actual Query Language
+q; // Query builder
+runQuery(query); // Deprecated: usar aqlQuery
 ```
 
 #### J. **Sincronización**
+
 ```typescript
-sync()                                 // Sincronizar con servidor
-runBankSync(accountId)                 // Sincronizar banco
-runImport(budgetName, func)            // Importar datos
-batchBudgetUpdates(func)               // Batch updates
+sync(); // Sincronizar con servidor
+runBankSync(accountId); // Sincronizar banco
+runImport(budgetName, func); // Importar datos
+batchBudgetUpdates(func); // Batch updates
 ```
 
 #### K. **System**
+
 ```typescript
-init(config)                           // Inicializar
-shutdown()                             // Cerrar
-getServerVersion()                     // Versión servidor
-utils.amountToInteger(amount)          // Conversión
-utils.integerToAmount(amount)          // Conversión
+init(config); // Inicializar
+shutdown(); // Cerrar
+getServerVersion(); // Versión servidor
+utils.amountToInteger(amount); // Conversión
+utils.integerToAmount(amount); // Conversión
 ```
 
 ---
@@ -518,15 +542,15 @@ deleteTransaction(id: string)
 // ============================================
 // aqlQuery() - Queries avanzadas
 // ============================================
-aqlQuery(query)
+aqlQuery(query);
 
 // El query builder:
-const query = q('transactions')
+const query = q("transactions")
   .filter({ account: accountId })
-  .filter({ date: { $gte: '2026-01-01' } })
-  .select(['*'])
+  .filter({ date: { $gte: "2026-01-01" } })
+  .select(["*"]);
 
-const results = await aqlQuery(query)
+const results = await aqlQuery(query);
 
 // Soporta:
 // - filter() - Filtrar
@@ -537,20 +561,20 @@ const results = await aqlQuery(query)
 // - Operadores: $eq, $ne, $lt, $lte, $gt, $gte, $in, $contains
 
 // Ejemplos:
-q('transactions').filter({
-  date: { $gte: '2026-01-01', $lt: '2026-02-01' },
+q("transactions").filter({
+  date: { $gte: "2026-01-01", $lt: "2026-02-01" },
   account: accountId,
-  cleared: true
-})
+  cleared: true,
+});
 
-q('accounts').filter({
+q("accounts").filter({
   offBudget: false,
-  archived: false
-})
+  archived: false,
+});
 
-q('payees').filter({
-  name: { $contains: 'Amazon' }
-})
+q("payees").filter({
+  name: { $contains: "Amazon" },
+});
 ```
 
 ---
@@ -598,7 +622,7 @@ Cliente A                    Servidor                  Cliente B
 ### Operación `sync()`
 
 ```typescript
-await api.sync()
+await api.sync();
 
 // Internamente:
 // 1. Detectar cambios locales desde último sync
@@ -617,6 +641,7 @@ await api.sync()
 ### Conflictos
 
 **El CRDT evita conflictos:**
+
 ```
 Cliente A:     Cambia Txn 1 a $100
 Cliente B:     Cambia Txn 1 a $200
@@ -649,9 +674,10 @@ Servidor:      Recibe ambas con vector clocks
 ### Flow de Encryption
 
 **Al descargar presupuesto:**
+
 ```typescript
 // Si el presupuesto tiene contraseña:
-await downloadBudget(syncId, { password: 'user-password' })
+await downloadBudget(syncId, { password: "user-password" });
 
 // Internamente:
 // 1. Descargar archivo cifrado del servidor
@@ -661,6 +687,7 @@ await downloadBudget(syncId, { password: 'user-password' })
 ```
 
 **Al sincronizar:**
+
 ```typescript
 // Los cambios locales se encriptan antes de enviar:
 // 1. Serializar cambios
@@ -793,15 +820,16 @@ account.sqlite
 
 ```typescript
 // ❌ ESTO NO FUNCIONARÁ:
-await api.loadBudget('budget-1')
-await api.loadBudget('budget-2')  // Sobrescribe budget-1
+await api.loadBudget("budget-1");
+await api.loadBudget("budget-2"); // Sobrescribe budget-1
 
 // ✅ TIENES QUE:
-await api.shutdown()               // Cierra budget-1
-await api.loadBudget('budget-2')
+await api.shutdown(); // Cierra budget-1
+await api.loadBudget("budget-2");
 ```
 
 **Implicación para REST API:**
+
 - Cache de presupuesto cargado por usuario/sessión
 - Cambiar de presupuesto requiere unload/load
 - Posible: mantener múltiples instancias de API (complejo)
@@ -810,15 +838,16 @@ await api.loadBudget('budget-2')
 
 ```typescript
 // ❌ ESTO NO FUNCIONARÁ:
-await api.init(config1)
-await api.init(config2)  // Se ignora
+await api.init(config1);
+await api.init(config2); // Se ignora
 
 // ✅ TIENES QUE:
-await api.shutdown()
-await api.init(config2)
+await api.shutdown();
+await api.init(config2);
 ```
 
 **Implicación para REST API:**
+
 - Una sola instancia de API por servidor
 - Todos los usuarios comparten la misma conexión
 - Pool de conexiones necesario para multiuser
@@ -839,12 +868,12 @@ Posibles estados intermedios durante sincronización
 
 ### 5. **Límites de Rendimiento**
 
-| Operación | Límite Recomendado | Notas |
-|-----------|-------------------|-------|
-| Transacciones/import | 1000s | Por batch |
-| Queries | Complejo | Límite de memoria |
-| Usuarios concurrentes | 10+ | Depende del servidor |
-| Tamaño DB | 500MB+ | Sin problemas |
+| Operación             | Límite Recomendado | Notas                |
+| --------------------- | ------------------ | -------------------- |
+| Transacciones/import  | 1000s              | Por batch            |
+| Queries               | Complejo           | Límite de memoria    |
+| Usuarios concurrentes | 10+                | Depende del servidor |
+| Tamaño DB             | 500MB+             | Sin problemas        |
 
 ### 6. **No Hay Soporte para Múltiples Instancias**
 
@@ -925,22 +954,23 @@ Riesgo: Corrupción de datos
 
 ```typescript
 // Estado del servidor Hono:
-let actualInitialized = false      // ¿API iniciada?
-let loadedBudget = {               // ¿Qué presupuesto?
+let actualInitialized = false; // ¿API iniciada?
+let loadedBudget = {
+  // ¿Qué presupuesto?
   syncId,
   userId,
-  loadedAt
-}
+  loadedAt,
+};
 
 // Lógica de carga inteligente:
 if (loadedBudget?.syncId === syncId && loadedBudget?.userId === userId) {
   // Presupuesto ya está cargado, reusar
-  return
+  return;
 } else {
   // Cambio de presupuesto, descargar anterior, cargar nuevo
-  await shutdown()
-  actualInitialized = false
-  await loadUserBudget(token, userId, syncId)
+  await shutdown();
+  actualInitialized = false;
+  await loadUserBudget(token, userId, syncId);
 }
 ```
 
@@ -957,6 +987,7 @@ sync()           1-5s (network)           N/A
 ```
 
 **Optimizaciones en el wrapper:**
+
 1. Cache de presupuesto cargado
 2. Reusar API instance
 3. Batch updates cuando sea posible
@@ -1149,30 +1180,34 @@ await shutdown()             // Limpiar
 ## 🚀 Próximos Pasos para el REST API
 
 1. **Inicializar API en startup:**
+
    ```typescript
    await init({
      serverURL: SYNC_SERVER_URL,
      password: ADMIN_TOKEN,
-     dataDir: './actual-data'
-   })
+     dataDir: "./actual-data",
+   });
    ```
 
 2. **Validar token en middleware:**
+
    ```typescript
-   const user = await validateToken(c.req.header('x-actual-token'))
+   const user = await validateToken(c.req.header("x-actual-token"));
    ```
 
 3. **Cargar presupuesto dinámicamente:**
+
    ```typescript
    if (loadedBudget?.syncId !== syncId) {
-     await loadUserBudget(token, userId, syncId)
+     await loadUserBudget(token, userId, syncId);
    }
    ```
 
 4. **Ejecutar operaciones:**
+
    ```typescript
-   await addTransactions(accountId, transactions)
-   await sync()
+   await addTransactions(accountId, transactions);
+   await sync();
    ```
 
 5. **Devolver resultado:**
@@ -1186,14 +1221,14 @@ await shutdown()             // Limpiar
 
 ### Archivos Clave
 
-| Archivo | Propósito |
-|---------|-----------|
-| `packages/api/methods.ts` | API pública |
-| `packages/api/index.ts` | init/shutdown |
-| `packages/loot-core/src/server/main.ts` | Handlers |
-| `packages/loot-core/src/server/api.ts` | Implementación |
+| Archivo                                   | Propósito       |
+| ----------------------------------------- | --------------- |
+| `packages/api/methods.ts`                 | API pública     |
+| `packages/api/index.ts`                   | init/shutdown   |
+| `packages/loot-core/src/server/main.ts`   | Handlers        |
+| `packages/loot-core/src/server/api.ts`    | Implementación  |
 | `packages/sync-server/src/app-account.ts` | Login endpoints |
-| `packages/sync-server/src/app-sync.ts` | Sync endpoints |
+| `packages/sync-server/src/app-sync.ts`    | Sync endpoints  |
 
 ### Documentación Oficial
 

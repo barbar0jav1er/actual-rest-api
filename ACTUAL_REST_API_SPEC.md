@@ -25,13 +25,16 @@
 ## 🎯 Visión General
 
 ### Propósito
+
 Crear una **REST API wrapper** alrededor de la librería `@actual-app/api` de Actual Budget que:
+
 - Exponga endpoints HTTP para acceder a Actual de manera programática
 - Permita que aplicaciones móviles y terceros accedan a datos de presupuestos
 - Integre autenticación OpenID del sync-server de Actual
 - Maneje múltiples presupuestos por usuario
 
 ### Contexto Actual
+
 - **Sync Server:** Corriendo en K3s con autenticación OpenID
 - **App Desktop:** Corriendo en Mac local
 - **App Web:** Accesible vía navegador móvil
@@ -39,6 +42,7 @@ Crear una **REST API wrapper** alrededor de la librería `@actual-app/api` de Ac
 - **Solución:** Servidor Hono que expone REST API
 
 ### Stack Tecnológico
+
 - **Framework:** Hono (lightweight web framework para Node.js)
 - **API Base:** @actual-app/api
 - **Lenguaje:** TypeScript
@@ -92,22 +96,26 @@ Crear una **REST API wrapper** alrededor de la librería `@actual-app/api` de Ac
 ### Componentes Principales
 
 #### 1. **Servidor Hono**
+
 - Aplicación web ligera en Node.js
 - Expone endpoints REST
 - Valida autenticación en cada request
 - Gestiona ciclo de vida de presupuestos
 
 #### 2. **Middleware de Autenticación**
+
 - Valida tokens OpenID contra sync-server
 - Extrae información del usuario (userId, permisos, etc)
 - Inyecta datos del usuario en el contexto de la request
 
 #### 3. **Gestor de Presupuestos**
+
 - Carga presupuestos bajo demanda
 - Mantiene cache de presupuestos cargados
 - Sincroniza cambios con el servidor
 
 #### 4. **Integraciones Externas**
+
 - **Sync Server:** Para validar tokens y obtener info de usuario
 - **@actual-app/api:** Para operaciones de presupuesto
 - **Base de datos Actual:** A través de la API
@@ -119,6 +127,7 @@ Crear una **REST API wrapper** alrededor de la librería `@actual-app/api` de Ac
 ### 1. Login (OpenID)
 
 **Participantes:**
+
 - App Móvil
 - Sync Server (en K3s)
 
@@ -313,6 +322,7 @@ Response 200:
 **Autenticación:** Requerida
 **Rate Limit:** 30 req/min
 **Notas:**
+
 - Incluye presupuestos propios y compartidos
 - `needsPassword` indica si requiere contraseña adicional para decrypt
 
@@ -356,6 +366,7 @@ Response 500:
 **Autenticación:** Requerida
 **Rate Limit:** 10 req/min
 **Notas:**
+
 - Necesario antes de hacer operaciones sobre transacciones
 - El servidor almacena en cache cuál presupuesto está cargado
 - Si es otro usuario o presupuesto, descarga el anterior
@@ -407,6 +418,7 @@ Response 400:
 **Autenticación:** Requerida
 **Rate Limit:** 60 req/min
 **Notas:**
+
 - El `syncId` debe corresponder a un presupuesto del usuario
 - Los saldos están en formato decimal (ej: 1234.56)
 - Incluye cuentas archivadas
@@ -459,6 +471,7 @@ Response 500:
 **Autenticación:** Requerida
 **Rate Limit:** 120 req/min
 **Notas:**
+
 - `amount` negativo = gasto, positivo = ingreso
 - `date` en formato ISO (YYYY-MM-DD)
 - Automáticamente sincroniza con el servidor
@@ -509,6 +522,7 @@ Response 200:
 **Rate Limit:** 60 req/min
 **Status:** Pendiente de implementación
 **Notas:**
+
 - Soportará filtrado por fecha
 - Paginación con limit/offset
 - Búsqueda por payee (futuro)
@@ -576,58 +590,63 @@ Response 200:
 ## 📊 Modelos de Datos
 
 ### User
+
 ```typescript
 interface User {
-  id: string                          // UUID
-  name: string                        // Display name
-  email: string                       // username/email
-  loginMethod: 'openid' | 'password'
-  permission: 'ADMIN' | 'BASIC'
+  id: string; // UUID
+  name: string; // Display name
+  email: string; // username/email
+  loginMethod: "openid" | "password";
+  permission: "ADMIN" | "BASIC";
 }
 ```
 
 ### Budget
+
 ```typescript
 interface Budget {
-  id: string                          // Sync ID
-  name: string
-  needsPassword: boolean
-  owner: string                       // User ID
-  createdAt: string                   // ISO datetime
+  id: string; // Sync ID
+  name: string;
+  needsPassword: boolean;
+  owner: string; // User ID
+  createdAt: string; // ISO datetime
 }
 ```
 
 ### Account
+
 ```typescript
 interface Account {
-  id: string                          // UUID
-  name: string
-  type: 'checking' | 'savings' | 'credit' | 'investment' | 'loan'
-  offBudget: boolean
-  archived: boolean
-  balance: number                     // Decimal format
+  id: string; // UUID
+  name: string;
+  type: "checking" | "savings" | "credit" | "investment" | "loan";
+  offBudget: boolean;
+  archived: boolean;
+  balance: number; // Decimal format
 }
 ```
 
 ### Transaction
+
 ```typescript
 interface Transaction {
-  id: string                          // UUID
-  date: string                        // YYYY-MM-DD
-  payee: string                       // Nombre del beneficiario
-  category: string | null             // Nombre de categoría
-  amount: number                      // Decimal: negativo=gasto, positivo=ingreso
-  notes: string | null
-  cleared: boolean                    // Reconciliado
+  id: string; // UUID
+  date: string; // YYYY-MM-DD
+  payee: string; // Nombre del beneficiario
+  category: string | null; // Nombre de categoría
+  amount: number; // Decimal: negativo=gasto, positivo=ingreso
+  notes: string | null;
+  cleared: boolean; // Reconciliado
 }
 ```
 
 ### LoadedBudget (Cache interno)
+
 ```typescript
 interface LoadedBudget {
-  syncId: string
-  userId: string
-  loadedAt: number                    // Timestamp
+  syncId: string;
+  userId: string;
+  loadedAt: number; // Timestamp
 }
 ```
 
@@ -901,60 +920,60 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
       containers:
-      - name: api
-        image: tu-registry.azurecr.io/actual-rest-api:1.0.0
-        imagePullPolicy: Always
-        ports:
-        - name: http
-          containerPort: 3001
-          protocol: TCP
-        env:
-        - name: NODE_ENV
-          value: "production"
-        envFrom:
-        - configMapRef:
-            name: actual-api-config
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 2
-        volumeMounts:
-        - name: data
-          mountPath: /app/actual-data
+        - name: api
+          image: tu-registry.azurecr.io/actual-rest-api:1.0.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3001
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+          envFrom:
+            - configMapRef:
+                name: actual-api-config
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          volumeMounts:
+            - name: data
+              mountPath: /app/actual-data
       volumes:
-      - name: data
-        emptyDir: {}
+        - name: data
+          emptyDir: {}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                  - actual-rest-api
-              topologyKey: kubernetes.io/hostname
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - actual-rest-api
+                topologyKey: kubernetes.io/hostname
 
 ---
 apiVersion: v1
@@ -967,10 +986,10 @@ spec:
   selector:
     app: actual-rest-api
   ports:
-  - name: http
-    port: 3001
-    targetPort: http
-    protocol: TCP
+    - name: http
+      port: 3001
+      targetPort: http
+      protocol: TCP
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -983,15 +1002,15 @@ spec:
     matchLabels:
       app: actual-rest-api
   policyTypes:
-  - Ingress
+    - Ingress
   ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: actual
-    ports:
-    - protocol: TCP
-      port: 3001
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: actual
+      ports:
+        - protocol: TCP
+          port: 3001
 
 ---
 apiVersion: v1
@@ -1144,16 +1163,19 @@ curl http://localhost:3001/health
 ## 📚 Referencias
 
 ### Documentación Oficial
+
 - [Actual Budget API Docs](https://actualbudget.org/docs/api/)
 - [Hono Documentation](https://hono.dev)
 - [Node.js Best Practices](https://nodejs.org/en/docs/)
 
 ### Código Relacionado
+
 - `packages/api/` - Especificación de @actual-app/api
 - `packages/sync-server/` - Implementación del sync-server
 - `packages/loot-core/` - Core de Actual
 
 ### Librerías Clave
+
 - `@actual-app/api` - SDK oficial de Actual
 - `hono` - Web framework
 - `node-fetch` - HTTP client (incluido en Node 18+)

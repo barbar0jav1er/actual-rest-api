@@ -27,12 +27,14 @@ npm start
 ## 📡 Endpoints API
 
 ### Health Check
+
 ```
 GET /health
 → { "status": "ok", "timestamp": "..." }
 ```
 
 ### User Info
+
 ```
 GET /api/user
 Headers: x-actual-token: TOKEN
@@ -40,6 +42,7 @@ Headers: x-actual-token: TOKEN
 ```
 
 ### List Budgets
+
 ```
 GET /api/budgets
 Headers: x-actual-token: TOKEN
@@ -47,6 +50,7 @@ Headers: x-actual-token: TOKEN
 ```
 
 ### Load Budget
+
 ```
 POST /api/load-budget
 Headers: x-actual-token: TOKEN
@@ -55,6 +59,7 @@ Body: { "syncId": "..." }
 ```
 
 ### Get Accounts
+
 ```
 GET /api/accounts?syncId=SYNC_ID
 Headers: x-actual-token: TOKEN
@@ -62,6 +67,7 @@ Headers: x-actual-token: TOKEN
 ```
 
 ### Create Transaction
+
 ```
 POST /api/transactions
 Headers: x-actual-token: TOKEN
@@ -226,24 +232,24 @@ npm run type-check
 
 ## 📝 Key Files to Create
 
-| File | Purpose |
-|------|---------|
-| `src/index.ts` | Main entry point |
-| `src/config.ts` | Configuration |
-| `src/types/index.ts` | TypeScript types |
-| `src/services/auth.ts` | Token validation |
-| `src/services/actual.ts` | API wrapper |
-| `src/middleware/auth.ts` | Auth middleware |
-| `src/middleware/error.ts` | Error handler |
-| `src/routes/user.ts` | User routes |
-| `src/routes/budgets.ts` | Budget routes |
-| `src/routes/accounts.ts` | Account routes |
+| File                         | Purpose            |
+| ---------------------------- | ------------------ |
+| `src/index.ts`               | Main entry point   |
+| `src/config.ts`              | Configuration      |
+| `src/types/index.ts`         | TypeScript types   |
+| `src/services/auth.ts`       | Token validation   |
+| `src/services/actual.ts`     | API wrapper        |
+| `src/middleware/auth.ts`     | Auth middleware    |
+| `src/middleware/error.ts`    | Error handler      |
+| `src/routes/user.ts`         | User routes        |
+| `src/routes/budgets.ts`      | Budget routes      |
+| `src/routes/accounts.ts`     | Account routes     |
 | `src/routes/transactions.ts` | Transaction routes |
-| `package.json` | Dependencies |
-| `tsconfig.json` | TypeScript config |
-| `.env` | Environment vars |
-| `Dockerfile` | Docker image |
-| `.dockerignore` | Docker ignore |
+| `package.json`               | Dependencies       |
+| `tsconfig.json`              | TypeScript config  |
+| `.env`                       | Environment vars   |
+| `Dockerfile`                 | Docker image       |
+| `.dockerignore`              | Docker ignore      |
 
 ---
 
@@ -266,25 +272,25 @@ npm run type-check
 
 ## 🔗 Important URLs
 
-| Service | URL |
-|---------|-----|
-| Sync Server | `http://localhost:5006` |
-| REST API (local) | `http://localhost:3001` |
-| REST API (K3s) | `http://actual-rest-api:3001` |
-| Actual Docs | https://actualbudget.org/docs/api/ |
-| Hono Docs | https://hono.dev |
+| Service          | URL                                |
+| ---------------- | ---------------------------------- |
+| Sync Server      | `http://localhost:5006`            |
+| REST API (local) | `http://localhost:3001`            |
+| REST API (K3s)   | `http://actual-rest-api:3001`      |
+| Actual Docs      | https://actualbudget.org/docs/api/ |
+| Hono Docs        | https://hono.dev                   |
 
 ---
 
 ## ❌ Common Errors
 
-| Error | Solution |
-|-------|----------|
-| `Cannot find module @actual-app/api` | `npm install @actual-app/api` |
-| `Token validation failed` | Check SYNC_SERVER_URL, verify token valid |
-| `Failed to load budget` | Verify syncId correct, user has access |
-| `Port 3001 in use` | `lsof -i :3001` then `kill -9 <PID>` |
-| `ENOENT: no such file` | Check DATA_DIR exists or create it |
+| Error                                | Solution                                  |
+| ------------------------------------ | ----------------------------------------- |
+| `Cannot find module @actual-app/api` | `npm install @actual-app/api`             |
+| `Token validation failed`            | Check SYNC_SERVER_URL, verify token valid |
+| `Failed to load budget`              | Verify syncId correct, user has access    |
+| `Port 3001 in use`                   | `lsof -i :3001` then `kill -9 <PID>`      |
+| `ENOENT: no such file`               | Check DATA_DIR exists or create it        |
 
 ---
 
