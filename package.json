@@ -16,7 +16,13 @@
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt . --write",
     "format:check": "oxfmt . --check",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "type-check:test": "tsc --project tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration"
   },
   "dependencies": {
     "@actual-app/api": "latest",
@@ -25,9 +31,12 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "msw": "^2.12.10",
     "oxfmt": "^0.35.0",
     "oxlint": "^1.50.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.18"
   }
 }

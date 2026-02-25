@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Sobrescribir rootDir para incluir tests/ además de src/
+    "rootDir": ".",
+    // No emitir archivos — solo type-check
+    "noEmit": true,
+    // Tests no necesitan estas restricciones tan estrictas
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
